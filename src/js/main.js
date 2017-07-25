@@ -45,9 +45,10 @@ class CanvasComponent extends React.Component {
     const { drawSomething, clearCanvas } = this.props;
     return (
       <div>
+        <h4>(1) 四角形を描画する</h4>
         <button type="button" onClick={drawSomething}>Context2Dに四角形を描画する</button>
         <button type="button" onClick={clearCanvas}>クリア</button><br/>
-        <canvas id="myCanvas"></canvas>
+        <canvas id="myCanvas" ></canvas>
       </div>
     );
   }
@@ -56,6 +57,34 @@ class CanvasComponent extends React.Component {
 CanvasComponent.propTypes = {
   drawSomething: PropTypes.func.isRequired,
   clearCanvas: PropTypes.func.isRequired
+};
+
+class CanvasComponent2 extends React.Component {
+  render() {
+    const {
+      changeColor,
+      clearCanvas,
+      startDrawing,
+      drawLineWithMouse,
+      stopDrawing
+    } = this.props;
+    return (
+      <div>
+        <h4>(2) マウスで線を描画する</h4>
+        <button type="button" onClick={changeColor}>ペンの色を変える</button>
+        <button type="button" onClick={clearCanvas}>クリア</button><br/>
+        <canvas id="myCanvas2" onMouseDown={startDrawing} onMouseMove={drawLineWithMouse} onMouseUp={stopDrawing}></canvas>
+      </div>
+    );
+  }
+}
+
+CanvasComponent2.propTypes = {
+  changeColor: PropTypes.func.isRequired,
+  clearCanvas: PropTypes.func.isRequired,
+  startDrawing: PropTypes.func.isRequired,
+  drawLineWithMouse: PropTypes.func.isRequired,
+  stopDrawing: PropTypes.func.isRequired
 };
 
 class WebGLComponent extends React.Component {
@@ -84,8 +113,9 @@ const CanvasContainer = (() => {
   const mapStateToProps = (/*state, ownProps*/) => {
     return {};
   }
-  
+
   const mapDispatchToProps = (/*dispatch*/) => {
+
     return {
       drawSomething() {
         const canvas = document.getElementById("myCanvas");
@@ -105,6 +135,75 @@ const CanvasContainer = (() => {
     mapStateToProps,
     mapDispatchToProps
   )(CanvasComponent);
+
+})();
+
+const CanvasContainer2 = (() => {
+
+  const mapStateToProps = (/*state, ownProps*/) => {
+    return {};
+  }
+
+  const mapDispatchToProps = (/*dispatch, ownProps*/) => {
+
+    let startX = null, startY = null;
+    let strokeStyle = '#2383BF';
+    let mousePushing = false;
+
+    return {
+      changeColor() {
+        const colors = ['#ff003b', '#2383BF', '#38c700', '#ffc814', '#ff14dc', '#000', '#8a8a8a'];
+        strokeStyle = colors[Math.floor(Math.random() * colors.length)];
+
+      },
+      clearCanvas() {
+        const myCanvas2 = document.getElementById("myCanvas2");
+        const context = myCanvas2.getContext("2d");
+        context.clearRect(0, 0, 300, 150);
+        startX = null;
+        startY = null;
+      },
+      startDrawing() {
+        mousePushing = true;
+      },
+      drawLineWithMouse(event) {
+        if (mousePushing === false) {
+          return;
+        }
+
+        const myCanvas2 = document.getElementById("myCanvas2");
+        const context = myCanvas2.getContext("2d");
+        const rect = event.target.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        if (startX === null) {
+          startX = x;
+          startY = y;
+          return {};
+        }
+
+        context.beginPath();
+        context.lineWidth = 3;
+        context.strokeStyle = strokeStyle;
+        context.moveTo(startX, startY);
+        context.lineTo(x, y);
+        context.stroke();
+        startX = x;
+        startY = y;
+      },
+      stopDrawing() {
+        mousePushing = false;
+        startX = null;
+        startY = null;
+      }
+    }
+  }
+
+  return connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(CanvasComponent2);
 
 })();
 
@@ -196,6 +295,13 @@ render(
     <CanvasContainer />
   </Provider>,
   document.getElementById('root-canvas')
+)
+
+render(
+  <Provider store={store}>
+    <CanvasContainer2 />
+  </Provider>,
+  document.getElementById('root-canvas2')
 )
 
 render(
