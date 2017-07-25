@@ -71,6 +71,7 @@ class CanvasComponent2 extends React.Component {
     return (
       <div>
         <h4>(2) マウスで線を描画する</h4>
+        <p>マウスでクリックしながら線を書くことができます。</p>
         <button type="button" onClick={changeColor}>ペンの色を変える</button>
         <button type="button" onClick={clearCanvas}>クリア</button><br/>
         <canvas id="myCanvas2" onMouseDown={startDrawing} onMouseMove={drawLineWithMouse} onMouseUp={stopDrawing}></canvas>
