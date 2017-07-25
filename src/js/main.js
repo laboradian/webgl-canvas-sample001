@@ -42,10 +42,11 @@ const aState = (state = null/*, action*/) => {
 
 class CanvasComponent extends React.Component {
   render() {
-    const { startCode } = this.props;
+    const { drawSomething, clearCanvas } = this.props;
     return (
       <div>
-        <button type="button" onClick={startCode}>Context2Dに四角を描画する</button>
+        <button type="button" onClick={drawSomething}>Context2Dに四角形を描画する</button>
+        <button type="button" onClick={clearCanvas}>クリア</button><br/>
         <canvas id="myCanvas"></canvas>
       </div>
     );
@@ -53,23 +54,25 @@ class CanvasComponent extends React.Component {
 }
 
 CanvasComponent.propTypes = {
-  startCode: PropTypes.func.isRequired
+  drawSomething: PropTypes.func.isRequired,
+  clearCanvas: PropTypes.func.isRequired
 };
-
 
 class WebGLComponent extends React.Component {
   render() {
-    const { startCode } = this.props;
+    const { drawSomething, clearMesh } = this.props;
     return (
       <div>
-        <button type="button" onClick={startCode}>スタート</button>
+        <button type="button" onClick={drawSomething}>スタート</button>
+        <button type="button" onClick={clearMesh}>クリア</button>
       </div>
     );
   }
 }
 
 WebGLComponent.propTypes = {
-  startCode: PropTypes.func.isRequired
+  drawSomething: PropTypes.func.isRequired,
+  clearMesh: PropTypes.func.isRequired
 };
 
 //-----------------------------------
@@ -84,11 +87,16 @@ const CanvasContainer = (() => {
   
   const mapDispatchToProps = (/*dispatch*/) => {
     return {
-      startCode() {
+      drawSomething() {
         const canvas = document.getElementById("myCanvas");
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = "green";
         ctx.fillRect(10, 10, 100, 100);
+      },
+      clearCanvas() {
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(10, 10, 100, 100);
       }
     }
   }
@@ -107,29 +115,41 @@ const WebGLContainer = (() => {
   }
   
   const mapDispatchToProps = (/*dispatch*/) => {
+
+    let THREE;
+    let scene;
+    let camera;
+    let geometry;
+    let material;
+    let mesh;
+    let renderer;
+    let rendererDom;
+    let request;
+    const rootDom = document.querySelector('#root-webgl');
+
     return {
-      startCode() {
-        const THREE = window.THREE;
+      drawSomething() {
 
-        const scene = new THREE.Scene();
-
-        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+        THREE = window.THREE;
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 );
         camera.position.z = 1000;
 
-        const geometry = new THREE.BoxGeometry( 200, 200, 200 );
-        const material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+        geometry = new THREE.BoxGeometry( 200, 200, 200 );
+        material = new THREE.MeshBasicMaterial( { color: 0xe60013, wireframe: true } );
 
-        const mesh = new THREE.Mesh( geometry, material );
+        mesh = new THREE.Mesh( geometry, material );
+
         scene.add( mesh );
 
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize( 400, 400 );
 
-        //document.body.appendChild( renderer.domElement );
-        document.querySelector('#root-webgl').appendChild( renderer.domElement );
+        rendererDom = renderer.domElement;
+        rootDom.appendChild( rendererDom );
 
         const animate = () => {
-          requestAnimationFrame( animate );
+          request = requestAnimationFrame( animate );
 
           mesh.rotation.x += 0.01;
           mesh.rotation.y += 0.02;
@@ -138,6 +158,16 @@ const WebGLContainer = (() => {
         }
 
         animate();
+      },
+      clearMesh() {
+
+        scene.remove( mesh );
+        geometry.dispose();
+        material.dispose();
+        rootDom.removeChild( rendererDom );
+        rendererDom = null;
+        cancelAnimationFrame(request)
+
       }
     }
   }
